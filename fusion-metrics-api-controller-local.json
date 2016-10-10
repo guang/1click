@@ -1,0 +1,85 @@
+{
+  "kind": "ReplicationController",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "fusion-metrics-api-controller",
+    "labels": {
+      "name": "fusion-metrics-api"
+    }
+  },
+  "spec": {
+    "replicas": 1,
+    "selector": {
+      "name": "fusion-metrics-api"
+    },
+    "template": {
+      "metadata": {
+        "labels": {
+          "name": "fusion-metrics-api"
+        }
+      },
+      "spec": {
+        "containers": [
+          {
+            "name": "fusion-metrics-api",
+            "image": "guangyang/fusion-metrics:latest",
+            "command": ["tail", "-f", "/home/dev/metrics/metrics/app.py"],
+            "env": [
+              {
+                "name": "KUBERNETES_RO_SERVICE_HOST",
+                "value": "127.0.0.1"
+              },
+              {
+                "name": "KUBERNETES_RO_SERVICE_PORT",
+                "value": "8001"
+              },
+              {
+                "name": "HOME",
+                "value": "/home/dev"
+              },
+              {
+                "name": "PYTHONPATH",
+                "value": "/home/dev/metrics"
+              },
+              {
+                "name": "FUSION_METRICS_BRANCH_NAME",
+                "value": "initialize-stuff"
+              }
+            ],
+            "ports": [
+              {
+                "containerPort": 8000
+              }
+            ],
+            "resources": {
+              "requests": {
+                "cpu": "200m"
+              }
+            },
+            "volumeMounts": [
+              {
+                "name": "metrics",
+                "readOnly": false,
+                "mountPath": "/home/dev/metrics"
+              }
+            ]
+          },
+          {
+            "name": "kubectl",
+            "image": "wernight/kubectl:1.2",
+            "imagePullPolicy": "Always",
+            "command": ["/usr/local/bin/kubectl", "proxy", "-p", "8001"]
+          }
+        ],
+        "volumes": [
+          {
+            "name": "metrics",
+            "hostPath": {
+              "path": "/Users/guangyang/metrics"
+            }
+          }
+        ]
+      }
+    }
+  }
+}
